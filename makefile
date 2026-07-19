@@ -11,6 +11,15 @@ help:
 version:
 	go run apis/services/sales/main.go --version
 
+curl-test:
+	curl -il -X GET http://localhost:3000/test
+
+curl-live:
+	curl -il -X GET http://localhost:3000/liveness
+
+curl-ready:
+	curl -il -X GET http://localhost:3000/readiness
+
 # ==============================================================================
 # Define dependencies
 
@@ -102,7 +111,6 @@ dev-apply:
 	kubectl wait pods --namespace=$(NAMESPACE) --selector app=$(SALES_APP) --timeout=120s --for=condition=Ready
 
 dev-restart:
-	kubectl rollout restart deployment $(AUTH_APP) --namespace=$(NAMESPACE)
 	kubectl rollout restart deployment $(SALES_APP) --namespace=$(NAMESPACE)
 
 dev-run: build dev-up dev-load dev-apply
