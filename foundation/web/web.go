@@ -36,6 +36,7 @@ func NewApp(shutdown chan os.Signal, mw ...MidHandler) *App {
 func (a *App) SignalShutdown() {
 	a.shutdown <- syscall.SIGTERM
 }
+
 func validateError(err error) bool {
 	// Example validation logic
 	return errors.Is(err, syscall.EINVAL)
