@@ -20,6 +20,9 @@ curl-live:
 curl-ready:
 	curl -il -X GET http://localhost:3000/readiness
 
+admin:
+	go run apis/tooling/admin/main.go
+
 # ==============================================================================
 # Define dependencies
 
