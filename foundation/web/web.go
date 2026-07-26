@@ -2,9 +2,15 @@ package web
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"net/http"
 	"os"
+	"syscall"
+	"time"
+
+	//"uuid"
+
+	"github.com/google/uuid"
 )
 
 // A handler is a type that handles a http request within our own little mini framework.
@@ -27,6 +33,14 @@ func NewApp(shutdown chan os.Signal, mw ...MidHandler) *App {
 	}
 }
 
+func (a *App) SignalShutdown() {
+	a.shutdown <- syscall.SIGTERM
+}
+func validateError(err error) bool {
+	// Example validation logic
+	return errors.Is(err, syscall.EINVAL)
+}
+
 func (a *App) HandleFunc(pattern string, handler Handler, mw ...MidHandler) {
 
 	handler = wrapMiddleware(mw, handler)
@@ -34,10 +48,18 @@ func (a *App) HandleFunc(pattern string, handler Handler, mw ...MidHandler) {
 
 	h := func(w http.ResponseWriter, r *http.Request) {
 
-		if err := handler(r.Context(), w, r); err != nil {
-			// ERROR HANDLING HERE
-			fmt.Println(err)
-			return
+		v := Values{
+			TraceID: uuid.NewString(),
+			Now:     time.Now().UTC(),
+		}
+
+		ctx := context.WithValue(r.Context(), key, &v)
+
+		if err := handler(ctx, w, r); err != nil {
+			if validateError(err) {
+				a.SignalShutdown()
+				return
+			}
 		}
 	}
 
